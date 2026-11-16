@@ -4,13 +4,13 @@ class MyHomePage extends StatelessWidget {
 	MyHomePage({super.key});
 
 	final String npm = "2506597712";
-	final String nama = "zaky";
+	final String nama = "Muhammad Zaky Robbani";
 	final String kelas = "PBP D";
 	
 	final List<ItemHomepage> items = [
-		ItemHomepage("Lihat Proyek", Icons.folder),
-		ItemHomepage("Tambah Proyek", Icons.add_circle),
-		ItemHomepage("Logout", Icons.logout),
+		ItemHomepage("Lihat Proyek", Icons.folder, Colors.lightGreenAccent),
+		ItemHomepage("Tambah Proyek", Icons.add_circle, Colors.deepPurple),
+		ItemHomepage("Logout", Icons.logout, Colors.indigoAccent),
 	];
 
 	@override
@@ -125,7 +125,7 @@ class ItemCard extends StatelessWidget {
 	Widget build(BuildContext context) {
 		return Material(
 		// Menggunakan warna sekunder dari skema tema aplikasi.
-		color: Theme.of(context).colorScheme.secondary,
+		color: item.color,
 		borderRadius: BorderRadius.circular(12),
 		child: InkWell(
 				// Aksi ketika kartu ditekan oleh pengguna.
@@ -167,6 +167,7 @@ class ItemCard extends StatelessWidget {
 class ItemHomepage {
 	final String name;
 	final IconData icon;
+  final Color color;
 
-	ItemHomepage(this.name, this.icon);
+	ItemHomepage(this.name, this.icon, this.color);
 }
