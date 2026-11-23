@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
+import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/screens/Education_form.dart';
 
 class MyHomePage extends StatelessWidget {
 	MyHomePage({super.key});
@@ -11,8 +13,10 @@ class MyHomePage extends StatelessWidget {
 	
 	final List<ItemHomepage> items = [
 		ItemHomepage("Lihat Proyek", Icons.folder, Colors.lightGreenAccent),
-		ItemHomepage("Tambah Proyek", Icons.add_circle, Colors.deepPurple),
-		ItemHomepage("Logout", Icons.logout, Colors.indigoAccent),
+		ItemHomepage("Tambah Proyek", Icons.add_circle, Colors.deepPurple, ProjectFormPage()),
+		ItemHomepage("Lihat Edukasi", Icons.folder, Colors.deepOrangeAccent),
+    	ItemHomepage("Tambah Edukasi", Icons.add_circle, Colors.brown, EducationFormPage()),
+    	ItemHomepage("Logout", Icons.logout, Colors.indigoAccent),
 	];
 
 	@override
@@ -122,7 +126,8 @@ class InfoCard extends StatelessWidget {
 class ItemHomepage {
 	final String name;
 	final IconData icon;
-  final Color color;
+  	final Color color;
+	final Widget? destination;
 
-	ItemHomepage(this.name, this.icon, this.color);
+	ItemHomepage(this.name, this.icon, this.color, [this.destination]);
 }
