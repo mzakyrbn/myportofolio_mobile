@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:myportofolio_mobile/widgets/left_drawer.dart';
+import 'package:provider/provider.dart';
+import 'package:myportfolio_mobile/widgets/left_drawer.dart';
+import 'package:myportfolio_mobile/models/education.dart';
+import 'package:myportfolio_mobile/services/auth_state.dart';
+import 'package:myportfolio_mobile/services/api_client.dart';
 
 class EducationFormPage extends StatefulWidget {
   const EducationFormPage({super.key});
@@ -10,6 +14,7 @@ class EducationFormPage extends StatefulWidget {
 
 class _EducationFormPageState extends State<EducationFormPage> {
   final _formKey = GlobalKey<FormState>();
+  bool _isSubmitting = false;
 
   String _educationName = "";
   String _category = "Formal"; // default
@@ -182,39 +187,7 @@ class _EducationFormPageState extends State<EducationFormPage> {
                       backgroundColor:
                         WidgetStateProperty.all(Colors.indigo),
                     ),
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Edukasi berhasil ditambahkan!'),
-                              content: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                Text('Nama Edukasi: $_educationName'),
-                                Text('Kategori: $_category'),
-                                Text('Institusi Penyelenggara: $_institution'),
-                                Text('Tahun Mulai: $_yearStart'),
-                                Text('Tahun Selesai: $_yearEnd'),
-                                ],
-                              ),
-                              ),
-                              actions: [
-                                TextButton(
-                                  child: const Text('OK'),
-                                  onPressed: () {
-                                  Navigator.pop(context);
-                                  _formKey.currentState!.reset();
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }
-                    },
+                    onPressed: _isSubmitting ? null : _submit,
                     child: const Text(
                       "Save",
                       style: TextStyle(color: Colors.white),
@@ -227,5 +200,80 @@ class _EducationFormPageState extends State<EducationFormPage> {
         )
       )
     );
+  }
+
+  Future<void> _submit() async {
+    // 1. Validate the form first.
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // 2. Retrieve the authentication state and token.
+      final authState = context.read<AuthState>();
+      final token = authState.token;
+
+      if (!authState.isLoggedIn || token == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('You must log in before adding education.'),
+          ),
+        );
+        return;
+      }
+
+      // 3. Construct the Education object.
+      final education = Education(
+        id: null,
+        title: _educationName.trim(),
+        category: _category.toLowerCase(),
+        institution: _institution.trim(),
+        yearStart: _yearStart.trim(),
+        yearEnd: _yearEnd.trim(),
+      );
+
+      // 4. Send the education data to Django.
+      await context.read<ApiClient>().createEducation(
+        education,
+        token: token,
+      );
+
+      if (!mounted) return;
+
+      // 5. Notify the user that creation succeeded.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Education successfully added!'),
+        ),
+      );
+
+      Navigator.pop(context);
+    } on ApiException catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Failed to add education. Status code: ${e.statusCode}',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An unexpected error occurred: $e'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
   }
 }

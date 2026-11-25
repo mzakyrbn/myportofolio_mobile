@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:myportofolio_mobile/screens/education_form.dart';
-import 'package:myportofolio_mobile/screens/menu.dart';
-import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportfolio_mobile/screens/education_form.dart';
+import 'package:myportfolio_mobile/screens/menu.dart';
+import 'package:myportfolio_mobile/screens/project_form.dart';
+import 'package:myportfolio_mobile/screens/login_screen.dart';
+import 'package:myportfolio_mobile/services/auth_state.dart';
+import 'package:myportfolio_mobile/widgets/auth_guard.dart';
+import 'package:provider/provider.dart';
 
 
 class LeftDrawer extends StatelessWidget {
@@ -9,6 +13,8 @@ class LeftDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLoggedIn = context.watch<AuthState>().isLoggedIn;
+
     return Drawer(
       child: ListView(
         children: [
@@ -38,10 +44,11 @@ class LeftDrawer extends StatelessWidget {
               ],
             ),
           ),
+
+          // Home
           ListTile(
             leading: const Icon(Icons.home_outlined),
             title: const Text('Home'),
-            // Navigasi ke halaman utama portofolio
             onTap: () {
               Navigator.pushReplacement(
                 context,
@@ -51,32 +58,73 @@ class LeftDrawer extends StatelessWidget {
               );
             },
           ),
+
+          // Add Project (requires authentication)
           ListTile(
             leading: const Icon(Icons.add_circle_outline),
             title: const Text('Add Project'),
-            // Navigasi ke halaman tambah proyek
-            onTap: () {
+            onTap: () async {
+              final loggedIn = await ensureLoggedIn(context);
+
+              if (!context.mounted || !loggedIn) return;
+
               Navigator.pushReplacement(
-                context, 
+                context,
                 MaterialPageRoute(
-                  builder: (context) => ProjectFormPage()
+                  builder: (context) => ProjectFormPage(),
                 ),
               );
             },
           ),
+
+          // Add Education (requires authentication)
           ListTile(
             leading: const Icon(Icons.add_circle_outline),
             title: const Text('Add Education'),
-            // Navigasi ke halaman tambah edukasi
-            onTap: () {
+            onTap: () async {
+              final loggedIn = await ensureLoggedIn(context);
+
+              if (!context.mounted || !loggedIn) return;
+
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => EducationFormPage()
+                  builder: (context) => EducationFormPage(),
                 ),
               );
             },
-          )
+          ),
+
+          // Login (only visible when logged out)
+          if (!isLoggedIn)
+            ListTile(
+              leading: const Icon(Icons.login),
+              title: const Text('Login'),
+              onTap: () async {
+                final loggedIn = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(),
+                  ),
+                );
+
+                if (!context.mounted) return;
+
+                if (loggedIn == true) {
+                  Navigator.pop(context);
+                }
+              },
+            ),
+
+          // Logout (only visible when logged in)
+          if (isLoggedIn)
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () async {
+                await context.read<AuthState>().logout();
+              },
+            ),
         ],
       ),
     );

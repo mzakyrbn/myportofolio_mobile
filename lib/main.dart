@@ -1,26 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:myportofolio_mobile/screens/menu.dart';
+import 'package:myportfolio_mobile/screens/menu.dart';
+import 'package:myportfolio_mobile/services/api_client.dart';
+import 'package:myportfolio_mobile/services/auth_state.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp(apiClient: ApiClient()));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({required this.apiClient, super.key});
 
-  // This widget is the root of your application.
+  final ApiClient apiClient;
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-          secondary: Colors.amber[700],
-        ),
-        useMaterial3: true,
+    // MultiProvider wraps the app and injects a collection of Provider objects.
+    // We usually use Provider object to pass one or more frequently reused objects such as API client or authentication state to the widgets in the tree.
+    return MultiProvider(
+      providers: [
+        Provider.value(value: apiClient),
+        ChangeNotifierProvider(create: (context) => AuthState(apiClient)),
+      ],
+      child: MaterialApp(
+        // ... existing title and theme configuration ...
+        home: MyHomePage(),
       ),
-      home: MyHomePage(),
     );
   }
 }
